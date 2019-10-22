@@ -1,0 +1,15 @@
+__pycache__
+venv
+db.sqlite3
+*.log
+*.json
+*.csv
+.env
+
+/static
+
+celerybeat.pid
+celerybeat-schedule
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
