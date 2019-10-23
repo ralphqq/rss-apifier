@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from feedparser import FeedParserDict
 
+from feeds.tests.helpers import make_fake_feedparser_dict
 from feeds.utils.feed_tools import fetch_feedparser_dict
 
 
@@ -14,13 +15,7 @@ class FetchFeedParserDictTest(TestCase):
 
         # Create and set a valid FeedParserDict object
         # to be used or overridden in the tests
-        self.feedparser_dict = FeedParserDict(
-            title='Sample Feed',
-            description='This is a sample feed',
-            link=self.feed_url,
-            version='rss20',
-            bozo=0,
-        )
+        self.feedparser_dict = make_fake_feedparser_dict(self.feed_url)
 
     def test_returns_feedparser_dict_object(self, mock_parse):
         mock_parse.return_value = self.feedparser_dict
