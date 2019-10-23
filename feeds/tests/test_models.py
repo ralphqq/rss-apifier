@@ -58,7 +58,7 @@ class FeedModelTest(TestCase):
         self.assertEqual(Feed.objects.count(), 0)
         self.assertFalse(self.mock_fetch_feedparser_dict.called)
 
-    def test_duplicate_feed_url_raises_validation_error(self):
+    def test_duplicate_feed_url_raises_integrity_error(self):
         feed = Feed.objects.create(link=self.feed_url)
         with self.assertRaises(IntegrityError):
             Feed.objects.create(link=self.feed_url)
@@ -73,3 +73,8 @@ class FeedModelTest(TestCase):
         self.assertEqual(feed.title, '')
         self.assertEqual(feed.description, '')
         self.assertEqual(feed.version, '')
+
+    def test_feed_fetching_errors_interrupts_save(self):
+        self.mock_fetch_feedparser_dict.side_effect = ValueError
+        with self.assertRaises(ValueError):
+            feed = Feed.objects.create(link=self.feed_url)
