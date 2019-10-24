@@ -32,13 +32,19 @@ class FeedModelTest(TestCase):
         new_feed = Feed.objects.get(link=self.feed_url)
 
         self.assertEqual(Feed.objects.count(), 1)
-        self.assertEqual(new_feed.title, self.feedparser_dict['title'])
+        self.assertEqual(
+            new_feed.title,
+            self.feedparser_dict.feed['title']
+        )
         self.assertEqual(
             new_feed.description,
-            self.feedparser_dict['description']
+            self.feedparser_dict.feed['description']
         )
         self.assertEqual(new_feed.link, self.feed_url)
-        self.assertEqual(new_feed.version, self.feedparser_dict['version'])
+        self.assertEqual(
+            new_feed.version,
+            self.feedparser_dict['version']
+        )
 
     def test_create_method(self):
         feed = Feed.objects.create(link=self.feed_url)
@@ -61,11 +67,13 @@ class FeedModelTest(TestCase):
     def test_duplicate_feed_url_raises_integrity_error(self):
         feed = Feed.objects.create(link=self.feed_url)
         with self.assertRaises(IntegrityError):
+            # Creating a new Feed object
+            # using a URL already in db
             Feed.objects.create(link=self.feed_url)
 
     def test_missing_feed_fields(self):
-        del self.feedparser_dict['title']
-        del self.feedparser_dict['description']
+        del self.feedparser_dict.feed['title']
+        del self.feedparser_dict.feed['description']
         del self.feedparser_dict['version']
         self.mock_fetch_feedparser_dict.return_value = self.feedparser_dict
         feed = Feed.objects.create(link=self.feed_url)

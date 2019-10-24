@@ -12,6 +12,7 @@ def fetch_feedparser_dict(feed_url):
             RSS or Atom format
     """
     feed = feedparser.parse(feed_url)
-    if not feed or not feed.get('version') or feed.get('bozo'):
+    if (not feed or not feed.get('version') or 
+            feed.get('bozo') or 'feed' not in feed):
         raise ValueError('Invalid or unrecognized feed format')
     return feed

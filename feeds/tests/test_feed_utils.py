@@ -22,6 +22,7 @@ class FetchFeedParserDictTest(TestCase):
         feed = fetch_feedparser_dict(feed_url=self.feed_url)
         self.assertTrue(mock_parse.called)
         self.assertIsInstance(feed, FeedParserDict)
+        self.assertIn('feed', feed) # details dict is in parse result
 
     def test_null_feedparser_object_raises_error(self, mock_parse):
         self.feedparser_dict = None
@@ -37,6 +38,12 @@ class FetchFeedParserDictTest(TestCase):
 
     def test_badly_formed_feed_raises_error(self, mock_parse):
         self.feedparser_dict['bozo'] = 1
+        mock_parse.return_value = self.feedparser_dict
+        with self.assertRaises(ValueError):
+            fetch_feedparser_dict(self.feed_url)
+
+    def test_missing_feed_details_dict_raises_error(self, mock_parse):
+        del self.feedparser_dict['feed']
         mock_parse.return_value = self.feedparser_dict
         with self.assertRaises(ValueError):
             fetch_feedparser_dict(self.feed_url)

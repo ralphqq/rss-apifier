@@ -16,8 +16,8 @@ class Feed(models.Model):
         """Fetches details about feed and saves it."""
         if not self.link:
             raise TypeError('No URL for feed provided')
-        feed = fetch_feedparser_dict(feed_url=self.link)
-        self.title = feed.get('title', '')
-        self.description = feed.get('description', '')
-        self.version = feed.get('version', '')
+        parsed_feed = fetch_feedparser_dict(feed_url=self.link)
+        self.title = parsed_feed.feed.get('title', '')
+        self.description = parsed_feed.feed.get('description', '')
+        self.version = parsed_feed.get('version', '')
         super().save(*args, **kwargs)
