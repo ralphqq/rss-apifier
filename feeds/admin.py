@@ -16,7 +16,8 @@ class FeedAdmin(admin.ModelAdmin):
         https://stackoverflow.com/a/39512190
         """
         try:
-            return super().changeform_view(request, object_id, form_url, extra_context)
+            response = super().changeform_view(request, object_id, form_url, extra_context)
         except Exception as e:
             self.message_user(request, e, level=messages.ERROR)
             return HttpResponseRedirect(form_url)
+        return response
