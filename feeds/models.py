@@ -13,11 +13,24 @@ class Feed(models.Model):
         return f'{self.title}'
 
     def save(self, *args, **kwargs):
-        """Fetches details about feed and saves it."""
+        """Overrides the built-in save method.
+
+        For new Feed objects, this method fetches meta data 
+        about the feed and includes these when saving. For existing 
+        Feed objects, the method behaves as the original save method.
+
+        Raises:
+            TypeError: when the Feed link is not given
+        """
         if not self.link:
             raise TypeError('No URL for feed provided')
-        parsed_feed = fetch_feedparser_dict(feed_url=self.link)
-        self.title = parsed_feed.feed.get('title', '')
-        self.description = parsed_feed.feed.get('description', '')
-        self.version = parsed_feed.get('version', '')
+
+        try:
+            feed = Feed.objects.get(link=self.link)
+        except Feed.DoesNotExist: 
+            parsed_feed = fetch_feedparser_dict(feed_url=self.link)
+            self.title = parsed_feed.feed.get('title', '')
+            self.description = parsed_feed.feed.get('description', '')
+            self.version = parsed_feed.get('version', '')
+
         super().save(*args, **kwargs)

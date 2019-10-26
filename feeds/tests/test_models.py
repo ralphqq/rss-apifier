@@ -51,6 +51,20 @@ class FeedModelTest(TestCase):
         self.assertTrue(self.mock_fetch_feedparser_dict.called)
         self.assertEqual(Feed.objects.count(), 1)
 
+    def test_updating_and_saving_existing_feed(self):
+        feed = Feed.objects.create(link=self.feed_url)
+
+        # Modify values for existing feed
+        my_feed = Feed.objects.get(link=feed.link)
+        my_feed.title = 'New title'
+        my_feed.description = 'New description'
+        my_feed.save()
+
+        this_feed = Feed.objects.get(link=feed.link)
+        self.assertEqual(this_feed.title, 'New title')
+        self.assertEqual(this_feed.description, 'New description')
+        self.assertEqual(Feed.objects.count(), 1)
+
     def test_save_without_link_raises_error(self):
         feed = Feed()
         with self.assertRaises(TypeError):
