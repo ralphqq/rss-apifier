@@ -26,6 +26,12 @@ class FeedModelTest(TestCase):
         # To ensure patch gets cleaned up during tearDown:
         self.addCleanup(patcher.stop)
 
+    def test_feed_model_defaults(self):
+        feed = Feed()
+        self.assertEqual(feed.title, '')
+        self.assertEqual(feed.description, '')
+        self.assertEqual(feed.version, '')
+
     def test_feed_save_method(self):
         feed = Feed(link=self.feed_url)
         feed.save()
