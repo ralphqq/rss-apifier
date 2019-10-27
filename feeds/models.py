@@ -28,9 +28,23 @@ class Feed(models.Model):
         try:
             feed = Feed.objects.get(link=self.link)
         except Feed.DoesNotExist: 
-            parsed_feed = fetch_feedparser_dict(feed_url=self.link)
-            self.title = parsed_feed.feed.get('title', '')
-            self.description = parsed_feed.feed.get('description', '')
-            self.version = parsed_feed.get('version', '')
-
+            self.fetch_and_set_feed_details()
         super().save(*args, **kwargs)
+
+    def fetch_and_set_feed_details(self):
+        """Fetches meta details about feed from its URL.
+
+        The fetched values ar then assigned to 
+        the appropriate fields of the Feed model. 
+        Note that the method does not call save().
+
+        Raises:
+            TypeError: when the Feed link is not given
+        """
+        if not self.link:
+            raise TypeError('No URL for feed provided')
+
+        parsed_feed = fetch_feedparser_dict(feed_url=self.link)
+        self.title = parsed_feed.feed.get('title', '')
+        self.description = parsed_feed.feed.get('description', '')
+        self.version = parsed_feed.get('version', '')

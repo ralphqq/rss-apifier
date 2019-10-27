@@ -54,16 +54,31 @@ class FeedModelTest(TestCase):
     def test_updating_and_saving_existing_feed(self):
         feed = Feed.objects.create(link=self.feed_url)
 
-        # Modify values for existing feed
-        my_feed = Feed.objects.get(link=feed.link)
-        my_feed.title = 'New title'
-        my_feed.description = 'New description'
-        my_feed.save()
+        with patch.object(Feed, 'fetch_and_set_feed_details') as mock_fetch:
+            # Modify values for existing feed and 
+            # test that feed initialization no longer takes place
+            my_feed = Feed.objects.get(link=feed.link)
+            my_feed.title = 'New title'
+            my_feed.description = 'New description'
+            my_feed.save()
+            self.assertFalse(mock_fetch.called)
 
+        # Test if changes took effect
         this_feed = Feed.objects.get(link=feed.link)
         self.assertEqual(this_feed.title, 'New title')
         self.assertEqual(this_feed.description, 'New description')
         self.assertEqual(Feed.objects.count(), 1)
+
+    def test_fetching_feed_details_method(self):
+        feed = Feed(link=self.feed_url) # Instantiate, not save
+        feed.fetch_and_set_feed_details()   # initialize, nopt saved
+        self.assertEqual(Feed.objects.count(), 0)
+        self.assertEqual(feed.title, self.feedparser_dict.feed['title'])
+        self.assertEqual(
+            feed.description,
+            self.feedparser_dict.feed['description']
+        )
+        self.assertEqual(feed.version, self.feedparser_dict['version'])
 
     def test_save_without_link_raises_error(self):
         feed = Feed()
@@ -100,3 +115,8 @@ class FeedModelTest(TestCase):
         self.mock_fetch_feedparser_dict.side_effect = ValueError
         with self.assertRaises(ValueError):
             feed = Feed.objects.create(link=self.feed_url)
+
+    def test_fetching_details_without_link(self):
+        feed = Feed()
+        with self.assertRaises(TypeError):
+            feed.fetch_and_set_feed_details()
