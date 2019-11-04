@@ -1,6 +1,8 @@
-from django.db import models
+from django.db import IntegrityError, models
 
-from feeds.utils.feed_tools import fetch_feedparser_dict
+from feeds.utils.feed_tools import (
+    fetch_feedparser_dict, preprocess_feed_entry_item
+)
 
 
 class Feed(models.Model):
@@ -48,3 +50,20 @@ class Feed(models.Model):
         self.title = parsed_feed.feed.get('title', '')
         self.description = parsed_feed.feed.get('description', '')
         self.version = parsed_feed.get('version', '')
+
+    def update_feed_entries(self):
+        """Fetches a given feed's available entries.
+
+        The method then saves all new entries.
+
+        Returns:
+            list: the list of available entries
+        """
+        parsed_feed = fetch_feedparser_dict(self.link)
+        # for item in parsed_feed.entries:
+            # try:
+                
+                # entry = Entry.objects.create_and_set(
+                # )
+            # except IntegrityError:
+                # pass
