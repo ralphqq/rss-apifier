@@ -183,3 +183,16 @@ class EntryProcessingAndSavingTest(TestCase):
         res = self.feed.update_feed_entries()
         self.assertEqual(res, self.total_entries - 2)
         self.assertEqual(mock_parse.call_count, self.total_entries - 2)
+
+    def test_old_entries_reached_limit(self, mock_fetch, mock_parse):
+        mock_fetch.return_value = self.feed_dict
+        mock_parse.side_effect = self.parsed_entries
+
+        # Save all entries after the first 10 entries
+        new_entries = 10
+        for entry in self.parsed_entries[new_entries:]:
+            self.feed.entries.create(**entry)
+
+        res = self.feed.update_feed_entries()
+        self.assertEqual(res, new_entries)
+        self.assertEqual(mock_parse.call_count, new_entries)

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -73,10 +74,16 @@ class Feed(models.Model):
         """
         parsed_feed = fetch_feedparser_dict(self.link)
         saved_entries_count = 0
+        old_entries_count = 0
         for feed_entry in parsed_feed.entries:
+            # Check if max count is reached
+            if old_entries_count >= settings.MAX_SAVED_ENTRIES_COUNT:
+                break
+
             try:
                 # Skip entry if already part of current feed
                 if self.entries.filter(link=feed_entry['link']):
+                    old_entries_count += 1
                     continue
 
                 item = preprocess_feed_entry_item(feed_entry)
@@ -90,5 +97,6 @@ class Feed(models.Model):
                 pass
             else:
                 saved_entries_count += 1
+                old_entries_count = 0
 
         return saved_entries_count
