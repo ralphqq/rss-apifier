@@ -131,6 +131,42 @@ class FeedModelTest(TestCase):
             feed.fetch_and_set_feed_details()
 
 
+class EntryModelTest(TestCase):
+
+    def test_field_defaults(self):
+        entry = Entry.objects.create()
+        self.assertEqual(Entry.objects.count(), 1)
+
+    def test_back_reference(self):
+        # Create some feeds
+        feed_url1 = 'https://www.my-feeds.com/'
+        feed_url2 = 'https://www.my-feeds2.com/'
+        feed_url3 = 'https://www.my-feeds3.com/'
+
+        feed_dict1 = make_fake_feedparser_dict(feed_url1)
+        feed_dict2 = make_fake_feedparser_dict(feed_url2)
+        feed_dict3 = make_fake_feedparser_dict(feed_url3)
+
+        feed1 = None
+        feed2 = None
+        feed3 = None
+        with patch('feeds.models.fetch_feedparser_dict') as mock_feed:
+            mock_feed.side_effect = [feed_dict1, feed_dict2, feed_dict3]
+            feed1 = Feed.objects.create(link=feed_url1)
+            feed2 = Feed.objects.create(link=feed_url2)
+            feed3 = Feed.objects.create(link=feed_url3)
+
+        # Create an entry and assign to feeds 1 and 2
+        entry = Entry.objects.create()
+        feed1.entries.add(entry)
+        feed2.entries.add(entry)
+
+        self.assertEqual(entry.feeds.count(), 2)
+        self.assertIn(feed1, entry.feeds.all())
+        self.assertIn(feed2, entry.feeds.all())
+        self.assertNotIn(feed3, entry.feeds.all())
+
+
 @patch('feeds.models.preprocess_feed_entry_item')
 @patch('feeds.models.fetch_feedparser_dict')
 class EntryProcessingAndSavingTest(TestCase):

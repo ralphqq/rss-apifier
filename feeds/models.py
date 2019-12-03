@@ -12,6 +12,7 @@ class Entry(models.Model):
     published = models.DateTimeField(default=timezone.now)
     summary = models.TextField()
     title = models.CharField(max_length=280)
+    timestamp = models.DateTimeField(default=timezone.now)
     feeds = models.ManyToManyField('Feed', related_name='entries')
 
     def __str__(self):
