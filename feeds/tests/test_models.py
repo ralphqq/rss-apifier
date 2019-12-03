@@ -3,8 +3,11 @@ from unittest.mock import patch
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from feeds.tests.helpers import make_fake_feedparser_dict
-from feeds.models import Feed
+from feeds.tests.helpers import (
+    make_fake_feedparser_dict, make_feed_entries_list,
+    make_preprocessed_entries_list
+)
+from feeds.models import Entry, Feed
 
 
 class FeedModelTest(TestCase):
@@ -126,3 +129,57 @@ class FeedModelTest(TestCase):
         feed = Feed()
         with self.assertRaises(TypeError):
             feed.fetch_and_set_feed_details()
+
+
+@patch('feeds.models.preprocess_feed_entry_item')
+@patch('feeds.models.fetch_feedparser_dict')
+class EntryProcessingAndSavingTest(TestCase):
+
+    def setUp(self):
+        # Create a feed
+        self.feed_url = 'https://www.my-feeds.com/'
+        self.total_entries = 30
+        self.feed_dict = make_fake_feedparser_dict(
+            feed_url=self.feed_url,
+            n_items=self.total_entries
+        )
+        self.feed = None
+        with patch('feeds.models.fetch_feedparser_dict') as mock_feed:
+            mock_feed.return_value = self.feed_dict
+            self.feed = Feed.objects.create(link=self.feed_url)
+
+        # Create list of processed entries
+        self.parsed_entries = make_preprocessed_entries_list(
+            n_items=self.total_entries,
+            feed_url=self.feed_url
+        )
+
+    def test_entries_processing_and_saving(self, mock_fetch, mock_parse):
+        mock_fetch.return_value = self.feed_dict
+        mock_parse.side_effect = self.parsed_entries
+
+        res = self.feed.update_feed_entries()
+        self.assertEqual(self.feed.entries.count(), self.total_entries)
+        self.assertEqual(res, self.total_entries)
+
+    def test_errors_when_processing_entries(self, mock_fetch, mock_parse):
+        mock_fetch.return_value = self.feed_dict
+        self.parsed_entries[2] = IntegrityError
+        self.parsed_entries[-1] = ValueError
+        mock_parse.side_effect = self.parsed_entries
+
+        res = self.feed.update_feed_entries()
+        self.assertEqual(self.feed.entries.count(), self.total_entries - 2)
+        self.assertEqual(res, self.total_entries - 2)
+
+    def test_parsing_existing_entries(self, mock_fetch, mock_parse):
+        mock_fetch.return_value = self.feed_dict
+        mock_parse.side_effect = self.parsed_entries
+
+        # Save two entries
+        self.feed.entries.create(**self.parsed_entries[0])
+        self.feed.entries.create(**self.parsed_entries[-1])
+
+        res = self.feed.update_feed_entries()
+        self.assertEqual(res, self.total_entries - 2)
+        self.assertEqual(mock_parse.call_count, self.total_entries - 2)

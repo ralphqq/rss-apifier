@@ -1,8 +1,20 @@
-from django.db import IntegrityError, models
+from django.db import models
+from django.utils import timezone
 
 from feeds.utils.feed_tools import (
     fetch_feedparser_dict, preprocess_feed_entry_item
 )
+
+
+class Entry(models.Model):
+    link = models.URLField(max_length=800)
+    published = models.DateTimeField(default=timezone.now)
+    summary = models.TextField()
+    title = models.CharField(max_length=280)
+    feeds = models.ManyToManyField('Feed', related_name='entries')
+
+    def __str__(self):
+        return self.title
 
 
 class Feed(models.Model):
@@ -54,16 +66,29 @@ class Feed(models.Model):
     def update_feed_entries(self):
         """Fetches a given feed's available entries.
 
-        The method then saves all new entries.
+        The method then tries to save all new entries.
 
         Returns:
-            list: the list of available entries
+            int: count of successfully saved entries
         """
         parsed_feed = fetch_feedparser_dict(self.link)
-        # for item in parsed_feed.entries:
-            # try:
-                
-                # entry = Entry.objects.create_and_set(
-                # )
-            # except IntegrityError:
-                # pass
+        saved_entries_count = 0
+        for feed_entry in parsed_feed.entries:
+            try:
+                # Skip entry if already part of current feed
+                if self.entries.filter(link=feed_entry['link']):
+                    continue
+
+                item = preprocess_feed_entry_item(feed_entry)
+                entry = self.entries.create(
+                    link=item.get('link'),
+                    published=item.get('published'),
+                    summary=item.get('summary'),
+                    title=item.get('title')
+                )
+            except Exception as e:
+                pass
+            else:
+                saved_entries_count += 1
+
+        return saved_entries_count

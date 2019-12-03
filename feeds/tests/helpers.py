@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import random
 from urllib.parse import urljoin
 
+from django.utils import timezone
+
 from feedparser import FeedParserDict
 
 
@@ -46,6 +48,25 @@ def make_feed_entries_list(n_items=10, feed_url=''):
                 f'{random.choice(tz)}'
             ),
             author=f'Author {i + 1}',
+            summary=f'Summary {i + 1}',
+            title=f'Title {i + 1}'
+        ) for i in range(n_items)
+    ]
+
+
+def make_preprocessed_entries_list(n_items=10, feed_url=''):
+    """Generates a list of processed entries.
+
+    Args:
+        n_items (int): how many entries to make
+        feed_url (str): base URL
+    """
+    now = timezone.now()
+    offset = timedelta(minutes=1)
+    return [
+        dict(
+            link=urljoin(feed_url, f'story-{i + 1:05d}.html'),
+            published=now - offset * random.randint(1, 180),
             summary=f'Summary {i + 1}',
             title=f'Title {i + 1}'
         ) for i in range(n_items)
