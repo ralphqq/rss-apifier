@@ -88,20 +88,24 @@ class Feed(models.Model):
             if old_entries_count >= settings.MAX_SAVED_ENTRIES_COUNT:
                 break
 
-            # Skip entry if already part of current feed
-            old_entry = self.entries.filter(link=feed_entry['link'])
-            if old_entry.exists():
-                old_entries_count += 1
-                continue
-
             try:
+                # Process raw entry and 
+                # create Entry object if it does not exist yet
                 item = preprocess_feed_entry_item(feed_entry)
-                entry = self.entries.create(
-                    link=item.get('link'),
-                    published=item.get('published'),
-                    summary=item.get('summary'),
-                    title=item.get('title')
+                entry, _ = Entry.objects.get_or_create(
+                    link=item['link'],
+                    defaults={k: v for k, v in item.items() if k != 'link'}
                 )
+
+                # Check existing entry is already part of current feed
+                old_entry = self.entries.filter(link=entry.link)
+
+                if old_entry.exists():
+                    old_entries_count += 1
+                    continue
+                else:
+                    self.entries.add(entry)
+
             except Exception as e:
                 pass
             else:

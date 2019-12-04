@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.db import IntegrityError
 from django.test import TestCase
 
@@ -166,6 +167,45 @@ class EntryModelTest(TestCase):
         self.assertIn(feed2, entry.feeds.all())
         self.assertNotIn(feed3, entry.feeds.all())
 
+    def test_unique_constraint_on_get_and_create(self):
+        link1 = 'https://www.newsfeeds.com/first.html'
+        link2 = 'https://www.newsfeeds.com/second.html'
+
+        # Create some parsed entries
+        entry1 = {
+            'link': link1,
+            'summary': 'Summary 1',
+            'title': 'Title 1'
+        }
+        entry2 = {
+            'link': link1,  # Same link as entry1
+            'summary': 'Summary 1 [Updated]',   # New summary, title
+            'title': 'Title 1 [Updated]'
+        }
+        entry3 = {
+            'link': link2,
+            'summary': 'Summary 3',
+            'title': 'Title 3'
+        }
+
+        # Create Entry objects
+        obj1 = Entry.objects.create(**entry1)
+        obj2, created2 = Entry.objects.get_or_create(
+            link=entry2['link'],
+            defaults={k: v for k, v in entry2.items() if k != 'link'}
+        )
+        obj3, created3 = Entry.objects.get_or_create(
+            link=entry3['link'],
+            defaults={k: v for k, v in entry3.items() if k != 'link'}
+        )
+
+        self.assertFalse(created2)
+        self.assertEqual(obj2.summary, entry1['summary'])
+        self.assertEqual(obj2.title, entry1['title'])
+        self.assertTrue(created3)
+        self.assertEqual(obj3.summary, entry3['summary'])
+        self.assertEqual(obj3.title, entry3['title'])
+
 
 @patch('feeds.models.preprocess_feed_entry_item')
 @patch('feeds.models.fetch_feedparser_dict')
@@ -220,7 +260,7 @@ class EntryProcessingAndSavingTest(TestCase):
 
         res = self.feed.update_feed_entries()
         self.assertEqual(res, self.total_entries - 2)
-        self.assertEqual(mock_parse.call_count, self.total_entries - 2)
+        self.assertEqual(mock_parse.call_count, self.total_entries)
 
     def test_old_entries_reached_limit(self, mock_fetch, mock_parse):
         mock_fetch.return_value = self.feed_dict
@@ -233,4 +273,29 @@ class EntryProcessingAndSavingTest(TestCase):
 
         res = self.feed.update_feed_entries()
         self.assertEqual(res, new_entries)
-        self.assertEqual(mock_parse.call_count, new_entries)
+        self.assertEqual(
+            mock_parse.call_count,
+            new_entries + settings.MAX_SAVED_ENTRIES_COUNT
+        )
+
+    def test_parsing_unassociated_entries(self, mock_fetch, mock_parse):
+        mock_fetch.return_value = self.feed_dict
+        mock_parse.side_effect = self.parsed_entries
+
+        # Save three  entries
+        # with links that are in current feed
+        e1 = Entry.objects.create(**self.parsed_entries[0])
+        e2 = Entry.objects.create(**self.parsed_entries[14])
+        e3 = Entry.objects.create(**self.parsed_entries[-1])
+
+        # Save a fourth entry whose link is not 
+        # in the current feed
+        e4 = Entry.objects.create(link='https://www.unrelated-feed.com/')
+
+        res = self.feed.update_feed_entries()
+        self.assertEqual(res, self.total_entries)
+        self.assertEqual(self.feed.entries.count(), self.total_entries)
+        self.assertIn(e1, self.feed.entries.all())
+        self.assertIn(e2, self.feed.entries.all())
+        self.assertIn(e3, self.feed.entries.all())
+        self.assertNotIn(e4, self.feed.entries.all())
