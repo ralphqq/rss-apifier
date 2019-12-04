@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.db import IntegrityError, models
 from django.utils import timezone
 
 from feeds.utils.feed_tools import (
@@ -8,12 +8,19 @@ from feeds.utils.feed_tools import (
 
 
 class Entry(models.Model):
-    link = models.URLField(max_length=800)
+    link = models.URLField(max_length=800, unique=True)
     published = models.DateTimeField(default=timezone.now)
     summary = models.TextField()
     title = models.CharField(max_length=280)
     timestamp = models.DateTimeField(default=timezone.now)
     feeds = models.ManyToManyField('Feed', related_name='entries')
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['link']),
+            models.Index(fields=['published']),
+            models.Index(fields=['timestamp']),
+        ]
 
     def __str__(self):
         return self.title
@@ -81,12 +88,13 @@ class Feed(models.Model):
             if old_entries_count >= settings.MAX_SAVED_ENTRIES_COUNT:
                 break
 
-            try:
-                # Skip entry if already part of current feed
-                if self.entries.filter(link=feed_entry['link']):
-                    old_entries_count += 1
-                    continue
+            # Skip entry if already part of current feed
+            old_entry = self.entries.filter(link=feed_entry['link'])
+            if old_entry.exists():
+                old_entries_count += 1
+                continue
 
+            try:
                 item = preprocess_feed_entry_item(feed_entry)
                 entry = self.entries.create(
                     link=item.get('link'),

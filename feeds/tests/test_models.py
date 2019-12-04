@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from django.db.utils import IntegrityError
+from django.db import IntegrityError
 from django.test import TestCase
 
 from feeds.tests.helpers import (
@@ -210,11 +210,13 @@ class EntryProcessingAndSavingTest(TestCase):
 
     def test_parsing_existing_entries(self, mock_fetch, mock_parse):
         mock_fetch.return_value = self.feed_dict
-        mock_parse.side_effect = self.parsed_entries
 
         # Save two entries
         self.feed.entries.create(**self.parsed_entries[0])
         self.feed.entries.create(**self.parsed_entries[-1])
+
+        # Exclude saved entries
+        mock_parse.side_effect = self.parsed_entries[1:-1]
 
         res = self.feed.update_feed_entries()
         self.assertEqual(res, self.total_entries - 2)
