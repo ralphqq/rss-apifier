@@ -7,7 +7,7 @@ from feeds.models import Feed
 @admin.register(Feed)
 class FeedAdmin(admin.ModelAdmin):
     list_display = ['title', 'description', 'version', 'link']
-    fields = ['link']
+    fields = ['link', 'title', 'description']
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         """Ensures errors are handled when submitting forms in admin.
