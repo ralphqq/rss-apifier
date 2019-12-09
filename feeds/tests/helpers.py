@@ -1,10 +1,21 @@
+"""
+Module that contains helper functions and resources for running unit tests
+
+Functions:
+    make_fake_feedparser_dict(feed_url, n_items=30)
+    make_feed_entries_list(n_items=10, feed_url='')
+    make_preprocessed_entries_list(n_items=10, feed_url='')
+    create_and_save_feeds(n_feeds=10)
+"""
 from datetime import datetime, timedelta
 import random
+from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.utils import timezone
-
 from feedparser import FeedParserDict
+
+from feeds.models import Feed
 
 
 def make_fake_feedparser_dict(feed_url, n_items=30):
@@ -71,3 +82,18 @@ def make_preprocessed_entries_list(n_items=10, feed_url=''):
             title=f'Title {i + 1}'
         ) for i in range(n_items)
     ]
+
+
+def create_and_save_feeds(n_feeds=10):
+    """Convenience function for creating Feed objects.
+
+    Returns:
+        queryset object: query set of all created Feed objects
+    """
+    with patch('feeds.models.Feed.fetch_and_set_feed_details') as mock_feed:
+        for i in range(n_feeds):
+            url = f'https://www.feed{i + 1}.com'
+            mock_feed.return_value = None
+            Feed.objects.create(link=url)
+
+    return Feed.objects.all()
