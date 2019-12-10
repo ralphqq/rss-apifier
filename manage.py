@@ -5,9 +5,9 @@ import sys
 
 
 def main():
-    default_settings_module = 'bizfeed.settings.development'
+    default_settings_module = 'rss_apifier.settings.development'
     if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        default_settings_module = 'bizfeed.settings.testing'
+        default_settings_module = 'rss_apifier.settings.testing'
 
     os.environ.setdefault(
         'DJANGO_SETTINGS_MODULE',

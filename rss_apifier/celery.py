@@ -6,10 +6,10 @@ from celery import Celery
 
 os.environ.setdefault(
     'DJANGO_SETTINGS_MODULE',
-    'bizfeed.settings.development'
+    'rss_apifier.settings.development'
 )
 
-app = Celery('bizfeed')
+app = Celery('rss_apifier')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
