@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'feeds',
     'django_celery_beat',
+    'rest_framework',
+    'api',
 ]
 
 MIDDLEWARE = [
