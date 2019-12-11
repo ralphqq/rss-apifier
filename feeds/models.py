@@ -21,6 +21,7 @@ class Entry(models.Model):
             models.Index(fields=['published']),
             models.Index(fields=['timestamp']),
         ]
+        ordering = ['-published']
 
     def __str__(self):
         return self.title
