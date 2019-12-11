@@ -25,16 +25,21 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # Application definition
 
 INSTALLED_APPS = [
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'feeds',
+
+    # Third-party apps
     'django_celery_beat',
     'rest_framework',
+
+    # Local apps
     'api',
+    'feeds',
 ]
 
 MIDDLEWARE = [
