@@ -1,4 +1,4 @@
-from rest_framework import generics, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -6,7 +6,7 @@ from feeds.api.serializers import EntrySerializer, FeedSerializer
 from feeds.models import Entry, Feed
 
 
-class EntryList(generics.ListAPIView):
+class EntryListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """Lists all saved entries."""
     queryset = Entry.objects.all()
     serializer_class = EntrySerializer
