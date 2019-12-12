@@ -11,7 +11,7 @@ class EntrySerializer(serializers.ModelSerializer):
 
 
 class FeedSerializer(serializers.HyperlinkedModelSerializer):
-    entries_list = serializers.HyperlinkedIdentityField(view_name='feed-entries-list')
+    entries_list = serializers.HyperlinkedIdentityField(view_name='feed-entries')
     entries_count = serializers.SerializerMethodField('count_entries')
 
     class Meta:
