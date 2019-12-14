@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from api.tests.helpers import (
-    BaseFeedAPITestCase, FEED_DETAIL_FIELDS
+    BaseFeedAPITestCase, create_entry_objects, FEED_DETAIL_FIELDS
 )
 from feeds.models import Feed
 
@@ -180,3 +180,33 @@ class DeleteFeedTest(BaseFeedAPITestCase):
         )
         with self.assertRaises(Feed.DoesNotExist):
             Feed.objects.get(pk=self.pk)
+
+
+class FeedEntriesListTest(BaseFeedAPITestCase):
+    """Tests GET requests on `feed-entries` endpoint.
+
+    This API call should return a JSON payload that includes a list of 
+    Entry objects associated with a given Feed object.
+    """
+
+    def setUp(self):
+        self.endpoint_url = reverse('feed-entries', kwargs={'pk': self.pk})
+        self.feed = Feed.objects.get(pk=self.pk)
+
+    def test_valid_feed_entries_retrieval(self):
+        # Create some Entry objects and associate with a Feed
+        n_entries = 120
+        feed_url = self.feed.link
+        entries = create_entry_objects(n_entries, feed_url)
+        for entry in entries:
+            self.feed.entries.add(entry)
+
+        # Fetch this feed's entries via API endpoint
+        response = self.client.get(self.endpoint_url)
+        payload = response.json()
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertIsInstance(payload['results'], list)
+        self.assertEqual(payload['count'], self.feed.entries.count())

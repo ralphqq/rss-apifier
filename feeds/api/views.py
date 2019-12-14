@@ -21,5 +21,7 @@ class FeedViewSet(viewsets.ModelViewSet):
     def entries(self, *args, **kwargs):
         """Lists all entries associated with a given RSS feed."""
         feed = self.get_object()
-        serializer = EntrySerializer(feed.entries.all(), many=True)
-        return Response(serializer.data)
+        page = self.paginate_queryset(feed.entries.all())
+        if page is not None:
+            serializer = EntrySerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)

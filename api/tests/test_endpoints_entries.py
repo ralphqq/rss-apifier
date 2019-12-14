@@ -2,8 +2,8 @@ from django.shortcuts import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from api.tests.helpers import create_entry_objects
 from feeds.models import Entry
-from feeds.tests.helpers import make_preprocessed_entries_list
 
 
 class EntryListTest(APITestCase):
@@ -19,12 +19,7 @@ class EntryListTest(APITestCase):
 
         # Create some fake entries
         cls.n_items = 275
-        cls.entries = Entry.objects.bulk_create([
-            Entry(**data) for data in make_preprocessed_entries_list(
-                n_items=cls.n_items,
-                feed_url='https://www.myfeed.com/'
-            )
-        ])
+        cls.entries = create_entry_objects(n_items=cls.n_items)
 
     def test_does_not_allow_post_request(self):
         response = self.client.post(self.endpoint_url)
