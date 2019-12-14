@@ -13,7 +13,8 @@ from feeds.models import Feed
 class FeedListTest(BaseFeedAPITestCase):
     """Tests GET request on `feed-list` endpoint.
 
-    This API call should retrieve a list of Feed instances.
+    This API call should return a JSON payload that includes 
+    a paginated list of Feed objects.
     """
 
     def setUp(self):
@@ -21,23 +22,25 @@ class FeedListTest(BaseFeedAPITestCase):
 
     def test_successful_get_request(self):
         response = self.client.get(self.endpoint_url)
+        payload = response.json()
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
         )
-        self.assertIsInstance(response.json(), list)
-        self.assertEqual(len(response.json()), self.n_items)
+        self.assertIsInstance(payload['results'], list)
+        self.assertEqual(payload['count'], self.n_items)
 
     def test_has_no_feeds_to_fetch(self):
         # delete all entries currently in db
         Feed.objects.all().delete()
         response = self.client.get(self.endpoint_url)
+        payload = response.json()
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
         )
-        self.assertIsInstance(response.json(), list)
-        self.assertEqual(len(response.json()), 0)
+        self.assertIsInstance(payload['results'], list)
+        self.assertEqual(payload['count'], 0)
 
 
 class FeedDetailTest(BaseFeedAPITestCase):
