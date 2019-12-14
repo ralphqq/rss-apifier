@@ -32,6 +32,11 @@ class Feed(models.Model):
     description = models.CharField(max_length=2048, default='')
     link = models.URLField(max_length=400, null=False, unique=True)
     version = models.CharField(max_length=64)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [models.Index(fields=['link'])]
+        ordering = ['link']
 
     def __str__(self):
         return f'{self.title}'
