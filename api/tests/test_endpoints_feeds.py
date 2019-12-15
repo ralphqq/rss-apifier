@@ -1,8 +1,6 @@
 from unittest.mock import patch
 
 from django.shortcuts import reverse
-from rest_framework import status
-from rest_framework.test import APITestCase
 
 from api.tests.helpers import (
     BaseFeedAPITestCase, create_entry_objects, FEED_DETAIL_FIELDS
@@ -24,10 +22,7 @@ class FeedListTest(BaseFeedAPITestCase):
     def test_successful_get_request(self):
         response = self.client.get(self.endpoint_url)
         payload = response.json()
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assert_http_status(response)
         self.assertIsInstance(payload['results'], list)
         self.assertEqual(payload['count'], self.n_items)
 
@@ -36,10 +31,7 @@ class FeedListTest(BaseFeedAPITestCase):
         Feed.objects.all().delete()
         response = self.client.get(self.endpoint_url)
         payload = response.json()
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assert_http_status(response)
         self.assertIsInstance(payload['results'], list)
         self.assertEqual(payload['count'], 0)
 
@@ -57,20 +49,14 @@ class FeedDetailTest(BaseFeedAPITestCase):
         url = reverse('feed-detail', kwargs={'pk': self.pk})
         response = self.client.get(url)
         payload = response.json()
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assert_http_status(response)
         self.assertIsInstance(payload, dict)
         self.assertCountEqual(payload.keys(), FEED_DETAIL_FIELDS)
 
     def test_retrieving_nonexistent_feed(self):
         url = reverse('feed-detail', kwargs={'pk': 100})
         response = self.client.get(url)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_404_NOT_FOUND
-        )
+        self.assert_http_status(response, 404)
 
 
 @patch('feeds.api.views.Feed.fetch_and_set_feed_details')
@@ -96,10 +82,7 @@ class CreateFeedTest(BaseFeedAPITestCase):
             data=valid_payload,
             format='json'
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED
-        )
+        self.assert_http_status(response, 201)
         self.assertTrue(mock_fetch.called)
 
     def test_feed_creation_with_link_only(self, mock_fetch):
@@ -109,10 +92,7 @@ class CreateFeedTest(BaseFeedAPITestCase):
             data=valid_payload,
             format='json'
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED
-        )
+        self.assert_http_status(response, 201)
         self.assertTrue(mock_fetch.called)
 
     def test_invalid_feed_creation_request(self, mock_fetch):
@@ -122,10 +102,7 @@ class CreateFeedTest(BaseFeedAPITestCase):
             data=invalid_payload,
             format='json'
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST
-        )
+        self.assert_http_status(response, 400)
         self.assertFalse(mock_fetch.called)
 
 
@@ -150,10 +127,7 @@ class UpdateFeedTest(BaseFeedAPITestCase):
             data=self.valid_payload,
             format='json'
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assert_http_status(response)
 
     def test_invalid_update(self, mock_fetch):
         invalid_payload = {'notvalid': 'notvalid'}
@@ -162,10 +136,7 @@ class UpdateFeedTest(BaseFeedAPITestCase):
             data=invalid_payload,
             format='json'
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST
-        )
+        self.assert_http_status(response, 400)
 
 
 class DeleteFeedTest(BaseFeedAPITestCase):
@@ -181,10 +152,7 @@ class DeleteFeedTest(BaseFeedAPITestCase):
 
     def test_successful_delete(self):
         response = self.client.delete(self.endpoint_url)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_204_NO_CONTENT
-        )
+        self.assert_http_status(response, 204)
         with self.assertRaises(Feed.DoesNotExist):
             Feed.objects.get(pk=self.pk)
 
@@ -212,9 +180,6 @@ class FeedEntriesListTest(BaseFeedAPITestCase):
         # Fetch this feed's entries via API endpoint
         response = self.client.get(self.endpoint_url)
         payload = response.json()
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assert_http_status(response)
         self.assertIsInstance(payload['results'], list)
         self.assertEqual(payload['count'], self.feed.entries.count())
