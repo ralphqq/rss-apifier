@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'django_celery_beat',
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Local apps
     'api',
@@ -152,5 +153,8 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'api.pagination.StandardResultsSetPagination'
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.StandardResultsSetPagination',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
 }

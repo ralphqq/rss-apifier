@@ -18,6 +18,7 @@ class FeedListTest(BaseFeedAPITestCase):
     """
 
     def setUp(self):
+        self.create_and_authenticate_user('testadmin')
         self.endpoint_url = reverse('feed-list')
 
     def test_successful_get_request(self):
@@ -49,6 +50,9 @@ class FeedDetailTest(BaseFeedAPITestCase):
     This API call should retrieve a single Feed object.
     """
 
+    def setUp(self):
+        self.create_and_authenticate_user('testadmin')
+
     def test_successful_retrieval(self):
         url = reverse('feed-detail', kwargs={'pk': self.pk})
         response = self.client.get(url)
@@ -70,13 +74,14 @@ class FeedDetailTest(BaseFeedAPITestCase):
 
 
 @patch('feeds.api.views.Feed.fetch_and_set_feed_details')
-class CreateFeedTest(APITestCase):
+class CreateFeedTest(BaseFeedAPITestCase):
     """Tests POST request on `feed-list` endpoint.
 
     This API call should create a new Feed object.
     """
 
     def setUp(self):
+        self.create_and_authenticate_user('testadmin')
         self.endpoint_url = reverse('feed-list')
 
     def test_successful_feed_creation(self, mock_fetch):
@@ -132,6 +137,7 @@ class UpdateFeedTest(BaseFeedAPITestCase):
     """
 
     def setUp(self):
+        self.create_and_authenticate_user('testadmin')
         self.feed = Feed.objects.get(pk=self.pk)
         self.valid_payload = {'link': self.feed.link}
         self.endpoint_url = reverse('feed-detail', kwargs={'pk': self.pk})
@@ -169,6 +175,7 @@ class DeleteFeedTest(BaseFeedAPITestCase):
     """
 
     def setUp(self):
+        self.create_and_authenticate_user('testadmin')
         self.feed = Feed.objects.get(pk=self.pk)
         self.endpoint_url = reverse('feed-detail', kwargs={'pk': self.pk})
 
@@ -190,6 +197,7 @@ class FeedEntriesListTest(BaseFeedAPITestCase):
     """
 
     def setUp(self):
+        self.create_and_authenticate_user('testadmin')
         self.endpoint_url = reverse('feed-entries', kwargs={'pk': self.pk})
         self.feed = Feed.objects.get(pk=self.pk)
 

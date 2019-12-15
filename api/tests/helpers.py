@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from feeds.api.serializers import EntrySerializer, FeedSerializer
@@ -25,10 +27,36 @@ def create_entry_objects(n_items=100, feed_url='https://www.myfeed.com/'):
     ])
 
 
+def create_user_and_auth_token(username, is_staff=False):
+    """Creates a user and generates token for the user.
+
+    Returns:
+        tuple: (User object, token)
+    """
+    user = User.objects.create(
+        username=username,
+        email=f'{username}@rssapifier.com',
+        is_staff=is_staff
+    )
+    token = Token.objects.create(user=user)
+    return user, token
+
+
 # Some helper/base classes
 
-class BaseFeedAPITestCase(APITestCase):
-    """Includes methods for test cases involving Feed detail views."""
+class BaseRSSAPITestCase(APITestCase):
+    """Includes methods common to all test cases in this project."""
+
+    def assert_http_status(self, response, expected_status_code=200):
+        """Asserts if response status code is exactly as expected."""
+        self.assertEqual(
+            response.status_code,
+            expected_status_code
+        )
+
+
+class BaseFeedAPITestCase(BaseRSSAPITestCase):
+    """Includes methods for test cases involving Feed list/detail."""
 
     @classmethod
     def setUpTestData(cls):
@@ -38,3 +66,11 @@ class BaseFeedAPITestCase(APITestCase):
 
         # Get a valid PK from saved Feed objects
         cls.pk = cls.feeds.values('id')[0]['id']
+
+    def create_and_authenticate_user(self, username='', is_staff=True):
+        """Convenience method for user creation and auth."""
+        user, token = create_user_and_auth_token(
+            username=username,
+            is_staff=is_staff
+        )
+        self.client.force_authenticate(user=user, token=token)

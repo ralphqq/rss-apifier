@@ -1,5 +1,6 @@
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from feeds.api.serializers import EntrySerializer, FeedSerializer
@@ -14,6 +15,7 @@ class EntryListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class FeedViewSet(viewsets.ModelViewSet):
     """Handles list, detail, and custom view methods for Feed."""
+    permission_classes = [IsAdminUser, IsAuthenticated]
     queryset = Feed.objects.all()
     serializer_class = FeedSerializer
 
