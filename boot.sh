@@ -21,6 +21,7 @@ if [ $1 = "gunicorn" ]; then
   echo Initializing app
   python manage.py collectstatic --noinput
   python manage.py migrate --noinput
+  python manage.py create_auth_admin_user
 fi
 
 exec $cmd

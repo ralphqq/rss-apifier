@@ -23,6 +23,7 @@ RUN /home/venv/bin/pip install -r requirements.txt
 RUN /home/venv/bin/pip install gunicorn
 
 # Copy project subdirectories to workdir
+COPY accounts accounts
 COPY api api
 COPY feeds feeds
 COPY rss_apifier rss_apifier
