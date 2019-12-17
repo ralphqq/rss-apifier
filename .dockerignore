@@ -1,0 +1,8 @@
+*
+!api
+!feeds
+!rss_apifier
+!boot.sh
+!manage.py
+!requirements.txt
+!secret-key.sh
