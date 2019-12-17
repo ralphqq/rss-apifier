@@ -9,21 +9,40 @@ class Command (BaseCommand):
     help = 'Create admin user and auth token based on env vars'
 
     def handle(self, *args, **kwargs):
-        UserModel = get_user_model()
-        try:
-            user = UserModel(
-                username=os.environ['ADMIN_USER'],
-                email=os.environ.get('ADMIN_EMAIL', ''),
-                is_staff=True,
-                is_superuser=True,
-                is_active=True
-            )
-            user.set_password(os.environ['ADMIN_PASSWORD'])
-            user.save()
-            token = Token.objects.create(user=user)
-        except Exception as e:
-            self.stdout.write(f'ERROR: {e}')
+        username = os.environ.get('ADMIN_USER')
+        password = os.environ.get('ADMIN_PASSWORD')
+        email = os.environ.get('ADMIN_EMAIL')
+
+        if username and password and email:
+            UserModel = get_user_model()
+            try:
+                # Create super user
+                user = UserModel(
+                    username=username,
+                    email=email,
+                    is_staff=True,
+                    is_superuser=True,
+                    is_active=True
+                )
+                user.set_password(password)
+                user.save()
+
+                # Generate auth token for user
+                token = Token.objects.create(user=user)
+            except Exception as e:
+                self.stdout.write(
+                    f'Encountered an error while creating default '
+                    f'admin user and generating token: {e}'
+                )
+            else:
+                if token:
+                    self.stdout.write(
+                        f'Created default admin user {user.username} and '
+                        f'generated API auth token'
+                    )
+
         else:
             self.stdout.write(
-                f'Created user {user.username} and associated API auth token'
+                'Default auth admin user not created '
+                '(1 or more credentials not found)'
             )
