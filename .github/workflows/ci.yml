@@ -1,4 +1,4 @@
-name: rss-apifier-ci
+name: ralphqq-rss-apifier-ci
 on:
   push:
     branches:
