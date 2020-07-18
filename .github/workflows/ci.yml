@@ -1,0 +1,51 @@
+name: rss-apifier-ci
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: db_admin
+      POSTGRES_DB: rss_db
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      DB_HOST: localhost
+      DB_PORT: 5432
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      ADMIN_EMAIL: administrator@example.com
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: db_admin
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: rss_db
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - name: Install psycopg2 prerequisites
+        run: sudo apt-get install python-dev libpq-dev
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run migrations
+        run: python manage.py migrate
+      - name: Test with pytest
+        run: |
+          pip install pytest-django
+          pytest

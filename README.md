@@ -37,7 +37,7 @@ The service allows you to:
 ## Tech Stack and Dependencies<a name="dependencies"></a>
 The app relies on the following dependencies to work:
 
-* Python
+* Python 3.6
 * Django
 * Django Rest Framework
 * feedparser
