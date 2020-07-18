@@ -21,6 +21,8 @@ This app parses and indexes RSS feeds, so that their entries can be searched and
     * [Resources and Endpoints](#api-reference-endpoints)
     * [Parameters and Requests](#api-reference-params)
     * [Response Schemas](#api-reference-response)
+* [Contributing](#contributing)
+* [License](#license)
 
 ## Overview and Features<a name="overview"></a>
 The service allows you to:
@@ -65,13 +67,35 @@ The app needs the following environment variables set in a `.env` file in the pr
 
 1. Create a Postgres database with the same details as specified in your environment variables
 2. Create and activate a virtual environment
-3. Install the dependencies: `pip install -r requirements.txt`
-4. Run the needed migrations: `python manage.py migrate`
-5. Create a superuser: `python manage.py createsuperuser`
-6. Run the Django development server: `python manage.py runserver`
-7. Run a Redis server accessible via port 6379
-8. Open a new terminal, `cd` into project root, and run a Celery worker: `celery -A rss_apifier worker -l INFO`
-9. Open a new terminal, `cd` into project root, and run Celery Beat: `celery -A rss_apifier beat -l INFO `--scheduler django_celery_beat.schedulers:DatabaseScheduler
+3. Install the development dependencies:
+    ```console
+    $ pip install -r requirements.txt
+    ```
+4. Run the needed migrations:
+    ```console
+    $ python manage.py migrate
+    ```
+5. Create a superuser:
+    ```console
+    $ python manage.py createsuperuser
+    ```
+6. Check if setup is ok:
+    ```console
+    $ pytest
+    ```
+7. Run the Django development server:
+    ```console
+    $ python manage.py runserver
+    ```
+8. Run a Redis server accessible via port 6379
+9. Open a new terminal, `cd` into project root, and run a Celery worker:
+    ```console
+    $ celery -A rss_apifier worker -l INFO
+    ```
+10. Open a new terminal, `cd` into project root, and run Celery Beat:
+    ```console
+    $ celery -A rss_apifier beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    ```
 
 **Notes**:
 
@@ -82,8 +106,14 @@ The app needs the following environment variables set in a `.env` file in the pr
 
 ### Running with Docker<a name="docker-env"></a>
 
-1. Build the images: `docker-compose build`
-2. Run the whole app: `docker-compose up`
+1. Build the images:
+    ```console
+    $ docker-compose build
+    ```
+2. Run the whole app:
+    ```console
+    $ docker-compose up
+    ```
 
 **Notes:**
 
@@ -130,8 +160,8 @@ The app also exposes an API endpoint for obtaining an existing user's current au
 ### Generating an auth token in the command line<a name="admin-auth-cli"></a>
 Another way to generate an auth token for a user is to use DRF's custom management command:
 
-```
-python manage.py drf_create_token NAME_OF_SUPERUSER
+```console
+$ python manage.py drf_create_token NAME_OF_SUPERUSER
 ```
 
 ## RSS Feeds and Entries<a name="rss-feeds"></a>
@@ -409,6 +439,24 @@ An RSS feed is represented by the following JSON object:
 * `version`: the feed's RSS version
 * `entries_count`: the total number of entries associated with this feeed
 * `entries_list`: URL that points to the list of entries associated with this feed
+
+## Contributing<a name="contributing"></a>
+1. Fork this repo at https://github.com/ralphqq/rss-apifier
+2. Clone your fork into your local machine
+3. Follow steps in development setup
+4. Create your feature branch:
+    ```console
+    $ git checkout -b feature/some-new-thing
+    ```
+5. Commit your changes:
+    ```console
+    $ git commit -m "Develop new thing"
+    ```
+6. Push to the branch:
+    ```console
+    $ git push origin feature/some-new-thing
+    ```
+7. Create a pull request
 
 ## License<a name="license"></a>
 [MIT license](https://opensource.org/licenses/MIT)
