@@ -35,7 +35,7 @@ The service allows you to:
 * Handle user management and permiessions/authentication
 
 ## Tech Stack and Dependencies<a name="dependencies"></a>
-The app relies on the following dependencies to work:
+The app needs the following things to work:
 
 * Python 3.6
 * Django
