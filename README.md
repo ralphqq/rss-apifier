@@ -1,6 +1,6 @@
 # rss-apifier
 
-![ralphqq-rss-apifier-ci](https://github.com/ralphqq/rss-apifier/workflows/ralphqq-rss-apifier-ci/badge.svg)
+![Build Status](https://github.com/ralphqq/rss-apifier/workflows/ralphqq-rss-apifier-ci/badge.svg)
 
 This app parses and indexes RSS feeds, so that their entries can be searched and queried via API calls.
 
